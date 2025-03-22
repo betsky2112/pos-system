@@ -1,9 +1,6 @@
 import {comparePassword, generateJwtToken, setAuthCookie} from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import {Princess_Sofia} from 'next/font/google'
 import {NextRequest, NextResponse} from 'next/server'
-import {error} from 'node:console'
-import {MdWhereToVote} from 'react-icons/md'
 import {z} from 'zod'
 
 const loginSchema = z.object({

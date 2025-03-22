@@ -1,6 +1,5 @@
 import {NextResponse} from 'next/server'
 import type {NextRequest} from 'next/server'
-import {error} from 'node:console'
 import {verifyJwtToken} from './auth'
 
 export async function middleware(request: NextRequest) {

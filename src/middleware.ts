@@ -1,7 +1,7 @@
 import {NextResponse} from 'next/server'
 import type {NextRequest} from 'next/server'
 import {verifyJwtToken} from './lib/auth'
-import {error} from 'node:console'
+import {error} from 'console'
 
 export async function middleware(request: NextRequest) {
 	const {pathname} = request.nextUrl

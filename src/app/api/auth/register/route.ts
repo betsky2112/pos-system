@@ -1,7 +1,6 @@
 import {generateJwtToken, hashPassword, setAuthCookie} from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import {NextRequest, NextResponse} from 'next/server'
-import {error} from 'node:console'
 import {z} from 'zod'
 
 const registerSchema = z.object({
