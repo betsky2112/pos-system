@@ -1,5 +1,5 @@
-import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import bcrypt from 'bcryptjs'
 import {cookies} from 'next/headers'
 
 export type JWTPayload = {
@@ -13,7 +13,7 @@ export const hashPassword = async (password: string) => {
 	return await bcrypt.hash(password, 10)
 }
 
-export const comparePassword = async (
+export const comparePasswords = async (
 	plainPassword: string,
 	hashedPassword: string
 ) => {
@@ -21,33 +21,44 @@ export const comparePassword = async (
 }
 
 export const generateJwtToken = (payload: JWTPayload) => {
-	return jwt.sign(payload, process.env.JWT_SECRET as string, {
+	if (!process.env.NEXTAUTH_SECRET) {
+		throw new Error('NEXTAUTH_SECRET not set in environment variables')
+	}
+
+	return jwt.sign(payload, process.env.NEXTAUTH_SECRET, {
 		expiresIn: '7d',
 	})
 }
 
 export const verifyJwtToken = (token: string) => {
-	return jwt.verify(token, process.env.JWT_SECRET as string) as JWTPayload
+	if (!process.env.NEXTAUTH_SECRET) {
+		throw new Error('NEXTAUTH_SECRET not set in environment variables')
+	}
+
+	try {
+		return jwt.verify(token, process.env.NEXTAUTH_SECRET) as JWTPayload
+	} catch (error) {
+		console.error('JWT verification failed:', error)
+		throw error
+	}
 }
 
 export const setAuthCookie = async (token: string) => {
-	const cookieStore = await cookies()
-	cookieStore.set({
+	;(await cookies()).set({
 		name: 'token',
 		value: token,
 		httpOnly: true,
 		path: '/',
 		secure: process.env.NODE_ENV === 'production',
-		maxAge: 60 * 60 * 24 * 7,
+		maxAge: 60 * 60 * 24 * 7, // 7 days
+		sameSite: 'lax',
 	})
 }
 
 export const clearAuthCookie = async () => {
-	const cookieStore = await cookies()
-	cookieStore.delete('token')
+	;(await cookies()).delete('token')
 }
 
 export const getAuthToken = async () => {
-	const cookieStore = await cookies()
-	return cookieStore.get('token')?.value
+	return (await cookies()).get('token')?.value
 }

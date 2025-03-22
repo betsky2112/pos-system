@@ -1,8 +1,9 @@
-import {comparePassword, generateJwtToken, setAuthCookie} from '@/lib/auth'
-import prisma from '@/lib/prisma'
 import {NextRequest, NextResponse} from 'next/server'
+import prisma from '@/lib/prisma'
+import {comparePasswords, generateJwtToken, setAuthCookie} from '@/lib/auth'
 import {z} from 'zod'
 
+// Validasi input
 const loginSchema = z.object({
 	email: z.string().email(),
 	password: z.string().min(1),
@@ -12,7 +13,7 @@ export async function POST(req: NextRequest) {
 	try {
 		const body = await req.json()
 
-		// validasi input
+		// Validasi input
 		const validation = loginSchema.safeParse(body)
 		if (!validation.success) {
 			return NextResponse.json(
@@ -23,26 +24,29 @@ export async function POST(req: NextRequest) {
 
 		const {email, password} = body
 
-		// cari user berdasarkan email
+		// Cari user berdasarkan email
 		const user = await prisma.user.findUnique({
 			where: {email},
 		})
 
 		if (!user) {
 			return NextResponse.json(
-				{error: 'Email tidak ditemukan'},
-				{status: 400}
+				{error: 'Email atau password salah'},
+				{status: 401}
 			)
 		}
 
-		// verifikasi password
-		const isPasswordValid = await comparePassword(password, user.password)
+		// Verifikasi password
+		const isPasswordValid = await comparePasswords(password, user.password)
 
 		if (!isPasswordValid) {
-			return NextResponse.json({error: 'Password salah'}, {status: 401})
+			return NextResponse.json(
+				{error: 'Email atau password salah'},
+				{status: 401}
+			)
 		}
 
-		// generate jwt token
+		// Generate JWT token
 		const token = generateJwtToken({
 			id: user.id,
 			email: user.email,
@@ -50,17 +54,33 @@ export async function POST(req: NextRequest) {
 			role: user.role,
 		})
 
-		setAuthCookie(token)
-
-		// hapus password dari respon
-		const {password: _, ...userWithoutPassword} = user
-
-		return NextResponse.json(
-			{user: userWithoutPassword, message: 'Login berhasil'},
+		// Set cookie - PERBAIKAN: pastikan cookie disimpan dengan benar
+		const response = NextResponse.json(
+			{
+				user: {
+					id: user.id,
+					email: user.email,
+					name: user.name,
+					role: user.role,
+				},
+				message: 'Login berhasil',
+			},
 			{status: 200}
 		)
+
+		// Set cookie secara manual di response
+		response.cookies.set({
+			name: 'token',
+			value: token,
+			httpOnly: true,
+			path: '/',
+			secure: process.env.NODE_ENV === 'production',
+			maxAge: 60 * 60 * 24 * 7, // 7 days
+		})
+
+		return response
 	} catch (error) {
-		console.error('Login error: ', error)
+		console.error('Login error:', error)
 		return NextResponse.json(
 			{error: 'Terjadi kesalahan pada server'},
 			{status: 500}

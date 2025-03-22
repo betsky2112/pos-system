@@ -6,38 +6,45 @@ import Link from 'next/link'
 import {useForm} from 'react-hook-form'
 import {zodResolver} from '@hookform/resolvers/zod'
 import {z} from 'zod'
-import axios from 'axios'
 import toast from 'react-hot-toast'
+import {useAuthStore} from '@/store/authStore'
 
-const loginScheme = z.object({
+// Validasi form
+const loginSchema = z.object({
 	email: z.string().email('Email tidak valid'),
-	password: z.string().min(6, 'Password minimal 6 karakter'),
+	password: z.string().min(1, 'Password harus diisi'),
 })
 
-type LoginFormValues = z.infer<typeof loginScheme>
+type LoginFormValues = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
 	const router = useRouter()
 	const [isLoading, setIsLoading] = useState(false)
+	const {login, error, clearError} = useAuthStore()
 
 	const {
 		register,
 		handleSubmit,
 		formState: {errors},
 	} = useForm<LoginFormValues>({
-		resolver: zodResolver(loginScheme),
+		resolver: zodResolver(loginSchema),
 	})
 
 	const onSubmit = async (data: LoginFormValues) => {
 		setIsLoading(true)
+		clearError() // Clear any previous errors
 
 		try {
-			const response = await axios.post('/api/auth/login', data)
+			await login(data.email, data.password)
 			toast.success('Login berhasil!')
-			router.push('/dashboard')
-			router.refresh()
+
+			// Penting: Tambahkan timeout untuk memastikan navigasi terjadi setelah state terupdate
+			setTimeout(() => {
+				router.push('/dashboard')
+				router.refresh()
+			}, 100)
 		} catch (error: any) {
-			toast.error(error.response?.data?.error || 'Terjadi kesalahan')
+			toast.error(error.message || 'Terjadi kesalahan login')
 		} finally {
 			setIsLoading(false)
 		}
@@ -56,7 +63,6 @@ export default function LoginPage() {
 				</div>
 
 				<form
-					action=""
 					className="mt-8 space-y-6"
 					onSubmit={handleSubmit(onSubmit)}
 				>
@@ -101,6 +107,14 @@ export default function LoginPage() {
 							</p>
 						)}
 					</div>
+
+					{error && (
+						<div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-md">
+							<p className="text-sm text-red-600 dark:text-red-400">
+								{error}
+							</p>
+						</div>
+					)}
 
 					<div>
 						<button
