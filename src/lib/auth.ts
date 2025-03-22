@@ -21,16 +21,13 @@ export const comparePassword = async (
 }
 
 export const generateJwtToken = (payload: JWTPayload) => {
-	return jwt.sign(payload, process.env.NEXTAUTH_SECRET as string, {
+	return jwt.sign(payload, process.env.JWT_SECRET as string, {
 		expiresIn: '7d',
 	})
 }
 
 export const verifyJwtToken = (token: string) => {
-	return jwt.verify(
-		token,
-		process.env.NEXTAUTH_SECRET as string
-	) as JWTPayload
+	return jwt.verify(token, process.env.JWT_SECRET as string) as JWTPayload
 }
 
 export const setAuthCookie = async (token: string) => {
@@ -40,7 +37,7 @@ export const setAuthCookie = async (token: string) => {
 		value: token,
 		httpOnly: true,
 		path: '/',
-		secure: process.env.NEXTAUTH_SECRET === 'production',
+		secure: process.env.NODE_ENV === 'production',
 		maxAge: 60 * 60 * 24 * 7,
 	})
 }
@@ -52,5 +49,5 @@ export const clearAuthCookie = async () => {
 
 export const getAuthToken = async () => {
 	const cookieStore = await cookies()
-	cookieStore.get('token')?.value
+	return cookieStore.get('token')?.value
 }
