@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,14 +8,66 @@ datasource db {
 }
 
 model User {
-  id            String       @id @default(uuid())
-  email         String       @unique
-  name          String
-  passwordHash  String
-  role          Role         @default(CASHIER)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  transactions  Transaction[]
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(CASHIER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions Transaction[]
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       Float
+  stock       Int
+  image       String?
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  transactionItems TransactionItem[]
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+}
+
+model Transaction {
+  id           String   @id @default(uuid())
+  date         DateTime @default(now())
+  subtotal     Float
+  tax          Float
+  discount     Float
+  total        Float
+  paymentStatus PaymentStatus @default(PAID)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  items TransactionItem[]
+}
+
+model TransactionItem {
+  id            String      @id @default(uuid())
+  quantity      Int
+  price         Float
+  productId     String
+  product       Product     @relation(fields: [productId], references: [id])
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 enum Role {
@@ -26,63 +75,8 @@ enum Role {
   CASHIER
 }
 
-model Product {
-  id          String       @id @default(uuid())
-  name        String
-  description String?
-  price       Float
-  stock       Int
-  image       String?
-  categoryId  String
-  category    Category     @relation(fields: [categoryId], references: [id])
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  TransactionItem TransactionItem[]
-}
-
-model Category {
-  id        String    @id @default(uuid())
-  name      String    @unique
-  products  Product[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-}
-
-model Transaction {
-  id            String           @id @default(uuid())
-  total         Float
-  tax           Float
-  discount      Float            @default(0)
-  finalTotal    Float
-  status        TransactionStatus @default(COMPLETED)
-  paymentMethod PaymentMethod
-  items         TransactionItem[]
-  userId        String
-  user          User             @relation(fields: [userId], references: [id])
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-}
-
-model TransactionItem {
-  id            String      @id @default(uuid())
-  quantity      Int
-  priceAtTime   Float
-  subtotal      Float
-  productId     String
-  product       Product     @relation(fields: [productId], references: [id])
-  transactionId String
-  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
-}
-
-enum TransactionStatus {
+enum PaymentStatus {
+  PAID
   PENDING
-  COMPLETED
   CANCELLED
-}
-
-enum PaymentMethod {
-  CASH
-  CREDIT_CARD
-  DEBIT_CARD
-  ONLINE
 }
