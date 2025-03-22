@@ -1,6 +1,6 @@
 import {NextResponse} from 'next/server'
 import type {NextRequest} from 'next/server'
-import {verifyJwtToken} from './lib/auth'
+import {jwtVerify} from 'jose'
 
 export async function middleware(request: NextRequest) {
 	const {pathname} = request.nextUrl
@@ -33,7 +33,9 @@ export async function middleware(request: NextRequest) {
 	}
 
 	try {
-		const payload = await verifyJwtToken(token)
+		// Verifikasi token dengan jose
+		const secretKey = new TextEncoder().encode(process.env.NEXTAUTH_SECRET)
+		const {payload} = await jwtVerify(token, secretKey)
 		console.log('Token verified, payload role:', payload.role)
 
 		// Jika user bukan admin dan mencoba mengakses halaman admin
@@ -47,8 +49,8 @@ export async function middleware(request: NextRequest) {
 
 		// Add user info to headers for server components
 		const requestHeaders = new Headers(request.headers)
-		requestHeaders.set('x-user-id', payload.id)
-		requestHeaders.set('x-user-role', payload.role)
+		requestHeaders.set('x-user-id', payload.id as string)
+		requestHeaders.set('x-user-role', payload.role as string)
 
 		const response = NextResponse.next({
 			request: {

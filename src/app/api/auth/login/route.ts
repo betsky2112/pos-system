@@ -1,6 +1,6 @@
 import {NextRequest, NextResponse} from 'next/server'
 import prisma from '@/lib/prisma'
-import {comparePasswords, generateJwtToken, setAuthCookie} from '@/lib/auth'
+import {comparePasswords, generateJwtToken} from '@/lib/auth'
 import {z} from 'zod'
 
 // Validasi input
@@ -46,15 +46,15 @@ export async function POST(req: NextRequest) {
 			)
 		}
 
-		// Generate JWT token
-		const token = generateJwtToken({
+		// Generate JWT token menggunakan jose
+		const token = await generateJwtToken({
 			id: user.id,
 			email: user.email,
 			name: user.name,
 			role: user.role,
 		})
 
-		// Set cookie - PERBAIKAN: pastikan cookie disimpan dengan benar
+		// Buat response dengan user data
 		const response = NextResponse.json(
 			{
 				user: {
@@ -76,6 +76,7 @@ export async function POST(req: NextRequest) {
 			path: '/',
 			secure: process.env.NODE_ENV === 'production',
 			maxAge: 60 * 60 * 24 * 7, // 7 days
+			sameSite: 'lax',
 		})
 
 		return response
