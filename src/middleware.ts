@@ -1,7 +1,6 @@
 import {NextResponse} from 'next/server'
 import type {NextRequest} from 'next/server'
 import {verifyJwtToken} from './lib/auth'
-import {error} from 'console'
 
 export async function middleware(request: NextRequest) {
 	const {pathname} = request.nextUrl
@@ -32,10 +31,7 @@ export async function middleware(request: NextRequest) {
 			return NextResponse.redirect(new URL('/dashboard', request.url))
 		}
 		return NextResponse.next()
-	} catch {
-		error
-	}
-	{
+	} catch (error) {
 		return NextResponse.redirect(new URL('/login', request.url))
 	}
 }
