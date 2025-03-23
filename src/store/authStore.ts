@@ -1,6 +1,5 @@
 import {create} from 'zustand'
 import axios from 'axios'
-import {jwtDecode} from 'jwt-decode'
 
 // Tipe data untuk user
 export type User = {
@@ -20,7 +19,7 @@ type AuthStore = {
 	fetchUser: () => Promise<void>
 	login: (email: string, password: string) => Promise<void>
 	register: (name: string, email: string, password: string) => Promise<void>
-	logout: () => Promise<void>
+	clearUser: () => void
 	clearError: () => void
 }
 
@@ -100,14 +99,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 		}
 	},
 
-	// Logout user
-	logout: async () => {
-		try {
-			await axios.post('/api/auth/logout')
-			set({user: null, error: null})
-		} catch (error) {
-			console.error('Error during logout:', error)
-		}
+	// Hapus data user dari store (untuk logout)
+	clearUser: () => {
+		set({user: null, error: null})
 	},
 
 	// Clear error state

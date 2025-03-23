@@ -51,9 +51,18 @@ const menuItems: SidebarItem[] = [
 
 export default function Sidebar() {
 	const pathname = usePathname()
-	const {user, logout} = useAuth()
+	const {user, logout, isAdmin} = useAuth()
 
-	const isAdmin = user?.role === 'ADMIN'
+	// Handle logout click
+	const handleLogout = async (e: React.MouseEvent) => {
+		e.preventDefault()
+		try {
+			await logout()
+			// Tidak perlu redirect di sini, karena sudah ditangani oleh hook useAuth
+		} catch (error) {
+			console.error('Logout error:', error)
+		}
+	}
 
 	// Filter menu items berdasarkan role
 	const filteredMenuItems = menuItems.filter((item) => {
@@ -106,7 +115,7 @@ export default function Sidebar() {
 							</div>
 
 							<button
-								onClick={logout}
+								onClick={handleLogout}
 								className="flex items-center px-4 py-2 text-sm font-medium text-red-600 rounded-md hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
 							>
 								<FiLogOut className="w-5 h-5" />
