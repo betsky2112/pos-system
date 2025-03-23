@@ -1,9 +1,15 @@
+'use client'
+
 import {useEffect} from 'react'
 import {useAuthStore} from '@/store/authStore'
 import {useRouter} from 'next/navigation'
+import axios from 'axios'
 
+/**
+ * Custom hook untuk mengelola autentikasi pengguna
+ */
 export function useAuth() {
-	const {user, loading, error, fetchUser, logout} = useAuthStore()
+	const {user, loading, error, fetchUser, clearUser} = useAuthStore()
 	const router = useRouter()
 
 	// Fetch user data pada client-side mount
@@ -17,9 +23,18 @@ export function useAuth() {
 
 	// Fungsi logout dengan redirect
 	const handleLogout = async () => {
-		await logout()
-		router.push('/login')
-		router.refresh()
+		try {
+			// Call the logout API
+			await axios.post('/api/auth/logout')
+
+			// Clear user data from store
+			clearUser()
+
+			// Navigate to login page
+			window.location.href = '/login' // Gunakan window.location untuk reload penuh
+		} catch (error) {
+			console.error('Logout error:', error)
+		}
 	}
 
 	return {
