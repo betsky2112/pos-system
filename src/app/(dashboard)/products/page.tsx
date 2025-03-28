@@ -100,20 +100,24 @@ export default function ProductsPage() {
 	useEffect(() => {
 		fetchCategories()
 		fetchProducts()
-	}, [pagination.page, pagination.limit])
+	}, [])
+
+	// Fetch ulang produk saat pagination, selectedCategory, atau searchTerm berubah
+	useEffect(() => {
+		fetchProducts()
+	}, [pagination.page, pagination.limit, selectedCategory, searchTerm])
 
 	// Handle submit pencarian
 	const handleSearch = (e: React.FormEvent) => {
 		e.preventDefault()
-		pagination.page = 1 // Reset ke halaman pertama
+		setPagination((prev) => ({...prev, page: 1})) // Reset ke halaman pertama
 		fetchProducts()
 	}
 
 	// Handle change category filter
 	const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		setSelectedCategory(e.target.value)
-		pagination.page = 1 // Reset ke halaman pertama
-		fetchProducts()
+		setPagination((prev) => ({...prev, page: 1})) // Reset ke halaman pertama
 	}
 
 	// Handle pagination

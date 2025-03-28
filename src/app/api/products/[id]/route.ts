@@ -16,7 +16,7 @@ const productUpdateSchema = z.object({
 })
 
 // GET - Mendapatkan produk berdasarkan ID
-export async function GET(req: NextRequest, {params}: {params: {id: string}}) {
+export async function GET(req: NextRequest, context: {params: {id: string}}) {
 	try {
 		// Verifikasi auth
 		const token = await getAuthToken()
@@ -26,6 +26,7 @@ export async function GET(req: NextRequest, {params}: {params: {id: string}}) {
 
 		await verifyJwtToken(token)
 
+		const params = await context.params
 		const productId = params.id
 
 		// Dapatkan produk berdasarkan ID
@@ -59,7 +60,7 @@ export async function GET(req: NextRequest, {params}: {params: {id: string}}) {
 }
 
 // PUT - Mengupdate produk berdasarkan ID
-export async function PUT(req: NextRequest, {params}: {params: {id: string}}) {
+export async function PUT(req: NextRequest, context: {params: {id: string}}) {
 	try {
 		// Verifikasi auth
 		const token = await getAuthToken()
@@ -77,6 +78,7 @@ export async function PUT(req: NextRequest, {params}: {params: {id: string}}) {
 			)
 		}
 
+		const params = await context.params
 		const productId = params.id
 
 		// Parse body request
@@ -148,7 +150,7 @@ export async function PUT(req: NextRequest, {params}: {params: {id: string}}) {
 // DELETE - Menghapus produk berdasarkan ID
 export async function DELETE(
 	req: NextRequest,
-	{params}: {params: {id: string}}
+	context: {params: {id: string}}
 ) {
 	try {
 		// Verifikasi auth
@@ -167,6 +169,7 @@ export async function DELETE(
 			)
 		}
 
+		const params = await context.params
 		const productId = params.id
 
 		// Cek apakah produk dengan ID tersebut ada
